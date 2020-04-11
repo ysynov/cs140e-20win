@@ -33,7 +33,7 @@ unsigned get32(const volatile void *addr);
 void nop(void);
 
 // see broadcomm documents for magic addresses.
-#define GPIO_BASE 0x20200000
+#define GPIO_BASE 0x3F200000
 volatile unsigned *gpio_fsel0 = (void*)(GPIO_BASE + 0x00);
 volatile unsigned *gpio_set0  = (void*)(GPIO_BASE + 0x1C);
 volatile unsigned *gpio_clr0  = (void*)(GPIO_BASE + 0x28);
@@ -45,18 +45,26 @@ volatile unsigned *gpio_clr0  = (void*)(GPIO_BASE + 0x28);
 void gpio_set_output(unsigned pin) {
     // implement this
     // use gpio_fsel0
+   volatile unsigned* gpio_fsel = gpio_fsel0 + pin / 10;
+   unsigned value = get32(gpio_fsel);
+   value = (1 << pin % 10 * 3) | value;
+   put32(gpio_fsel, value);
 }
 
 // set GPIO <pin> on.
 void gpio_set_on(unsigned pin) {
     // implement this
     // use gpio_set0
+    volatile unsigned* gpio_set = gpio_set0 + pin / 32;
+    put32(gpio_set, 1 << (pin % 32));
 }
 
 // set GPIO <pin> off
 void gpio_set_off(unsigned pin) {
     // implement this
     // use gpio_clr0
+    volatile unsigned* gpio_clr = gpio_clr0 + pin / 32;
+    put32(gpio_clr, 1 << (pin % 32));
 }
 
 // Part 2: implement gpio_set_input and gpio_read

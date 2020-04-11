@@ -33,7 +33,7 @@ void delay(unsigned ticks) {
 // when you run should blink 10 times. will have to restart the pi by pulling the
 // usb connection out.
 void notmain(void) {
-    int led = 20;
+    int led = 4;
     gpio_set_output(led);
     for(int i = 0; i < 10; i++) {
         gpio_set_on(led);
