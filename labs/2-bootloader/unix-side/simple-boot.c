@@ -82,6 +82,8 @@ void simple_boot(int fd, const uint8_t *buf, unsigned n) {
     while((op = get_op(fd)) != GET_PROG_INFO)
         output("expected initial GET_PROG_INFO, got <%x>: discarding.\n", op);
 
+    output("Got GET_PROG_INFO\n");
+
     // 1. reply to the GET_PROG_INFO
     put_uint32(fd, PUT_PROG_INFO);
     put_uint32(fd, ARMBASE);

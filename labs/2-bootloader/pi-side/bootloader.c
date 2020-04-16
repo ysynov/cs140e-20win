@@ -83,7 +83,7 @@ void wait_for_data(void) {
         // the funny subtraction is to prevent wrapping.
         while((timer_get_usec() - s) < 300*1000) {
             // the UART says there is data: start eating it!
-            if(uart_rx_has_data())
+            if(uart_rx_has_data() && get_byte() == 0x44)
                 return;
         }
     }
@@ -107,8 +107,7 @@ void notmain(void) {
 
     // 2. expect: [PUT_PROG_INFO, addr, nbytes, cksum] 
     //    we echo cksum back in step 4 to help debugging.
-    unsigned op;
-    while ((op = get_byte()) != 0x44);
+    unsigned op = 0x44;
     op |= get_byte() << 8;
     op |= get_byte() << 16;
     op |= get_byte() << 24;
