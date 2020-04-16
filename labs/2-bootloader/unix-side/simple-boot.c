@@ -83,16 +83,25 @@ void simple_boot(int fd, const uint8_t *buf, unsigned n) {
         output("expected initial GET_PROG_INFO, got <%x>: discarding.\n", op);
 
     // 1. reply to the GET_PROG_INFO
-    unimplemented();
+    put_uint32(fd, PUT_PROG_INFO);
+    put_uint32(fd, ARMBASE);
+    put_uint32(fd, n);
+    unsigned crc = crc32(buf, n);
+    put_uint32(fd, crc);
 
     // 2. drain any extra GET_PROG_INFOS
-    unimplemented();
+    while((op = get_op(fd)) == GET_PROG_INFO);
 
     // 3. check that we received a GET_CODE
-    unimplemented();
+    if (op != GET_CODE) panic("Unexpected opcode %x", op);
+    unsigned recv_crc = get_uint32(fd);
+    if (recv_crc != crc) {
+        panic("Received wrong crc from pi");
+    }
 
     // 4. handle it: send a PUT_CODE massage.
-    unimplemented();
+    put_uint32(fd, PUT_CODE);
+    for (int i = 0; i < n; ++i) put_byte(fd, buf[i]);
 
     // 5. Wait for success
     ck_eq32(fd, "BOOT_SUCCESS mismatch", BOOT_SUCCESS, get_op(fd));

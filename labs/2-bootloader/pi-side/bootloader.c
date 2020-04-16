@@ -79,7 +79,6 @@ void putk(const char *msg) {
 void wait_for_data(void) {
     while(1) {
         put_uint(GET_PROG_INFO);
-
         unsigned s = timer_get_usec();
         // the funny subtraction is to prevent wrapping.
         while((timer_get_usec() - s) < 300*1000) {
@@ -108,7 +107,22 @@ void notmain(void) {
 
     // 2. expect: [PUT_PROG_INFO, addr, nbytes, cksum] 
     //    we echo cksum back in step 4 to help debugging.
-
+    unsigned op;
+    while ((op = get_byte()) != 0x44);
+    op |= get_byte() << 8;
+    op |= get_byte() << 16;
+    op |= get_byte() << 24;
+    if (op != PUT_PROG_INFO) {
+	reboot();
+    } 
+    unsigned addr = get_uint();
+    unsigned nbytes = get_uint();
+    unsigned crc = get_uint();
+    if (addr != ARMBASE || addr + nbytes > (unsigned)BRANCHTO) {
+        put_uint(BAD_CODE_ADDR);
+	reboot();
+    }
+    putk("Received PUT_PROG_INFO");
 
     // 3. If the binary will collide with us, abort. 
     //    you can assume that code must be below where the booloader code
@@ -116,14 +130,26 @@ void notmain(void) {
 
 
     // 4. send [GET_CODE, cksum] back.
-
+    put_uint(GET_CODE);
+    put_uint(crc);
 
     // 5. expect: [PUT_CODE, <code>]
     //  read each sent byte and write it starting at 
     //  ARMBASE using PUT8
+    op = get_uint();
+    if (op != PUT_CODE) {
+        reboot();
+    }
+    for (unsigned p = addr; p < addr + nbytes; ++p) PUT8(p, get_byte());
+    putk("Received code");
 
     // 6. verify the cksum of the copied code.
-
+    u32 new_crc = crc32((void*)addr, nbytes);
+    if (new_crc != crc) {
+        put_uint(BAD_CODE_CKSUM);
+        reboot();
+    }
+    putk("CRC OK");
 
     /****************************************************************
      * add your code above: don't modify below unless you want to 
