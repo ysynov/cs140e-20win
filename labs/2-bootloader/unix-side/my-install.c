@@ -126,6 +126,9 @@ int main(int argc, char *argv[]) {
 	output("%s: tty-usb=<%s> program=<%s> about to boot\n", progname, dev_name, pi_prog);
     simple_boot(fd, code, nbytes);
 
+    close(fd);
+    fd = set_tty_to_8n1(open_tty(dev_name), B115200, 1);
+
     // echo input / output to/from pi
 	echo(fd, dev_name);
 	return 0;

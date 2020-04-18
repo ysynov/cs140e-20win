@@ -4,6 +4,8 @@
 #ifndef __GPIO_H__
 #define __GPIO_H__
 
+#include "rpi.h"
+
 // GPIO pin mappings for UART
 #define GPIO_TX 14
 #define GPIO_RX 15
